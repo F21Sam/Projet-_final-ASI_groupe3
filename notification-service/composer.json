@@ -11,10 +11,12 @@
         "doctrine/doctrine-bundle": "^2.12",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.2",
+        "symfony/class-loader": "^3.4",
         "symfony/console": "6.4.*",
         "symfony/dotenv": "6.4.*",
-        "symfony/flex": "^2",
+        "symfony/flex": "^2.4",
         "symfony/framework-bundle": "6.4.*",
+        "symfony/routing": "6.4.*",
         "symfony/runtime": "6.4.*",
         "symfony/yaml": "6.4.*"
     },
