@@ -23,6 +23,9 @@ class Billing
     #[ORM\Column(length: 255)]
     private ?string $customer_email = null;
 
+    #[ORM\Column]
+    private ?int $orderId = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -60,6 +63,18 @@ class Billing
     public function setCustomerEmail(string $customer_email): static
     {
         $this->customer_email = $customer_email;
+
+        return $this;
+    }
+
+    public function getOrderId(): ?int
+    {
+        return $this->orderId;
+    }
+
+    public function setOrderId(int $orderId): static
+    {
+        $this->orderId = $orderId;
 
         return $this;
     }

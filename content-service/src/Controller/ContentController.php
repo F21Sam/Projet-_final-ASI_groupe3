@@ -1,8 +1,5 @@
 <?php
 
-//Controller de la commande, permet de créer, modifier, afficher ou supprimer une commande.
-
-
 namespace App\Controller;
 
 use App\Entity\Commande;
@@ -11,14 +8,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class ContentController extends AbstractController
 {
     private $entityManager;
+    private $httpClient;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, HttpClientInterface $httpClient)
     {
         $this->entityManager = $entityManager;
+        $this->httpClient = $httpClient;
     }
 
     #[Route('/content', name: 'create_order', methods: ['POST'])]
@@ -38,30 +38,74 @@ class ContentController extends AbstractController
         $this->entityManager->persist($order);
         $this->entityManager->flush();
 
+        $secondApiData = [
+            'amount' => $data['total_price'],
+            'due_date' => '2024-08-01', 
+            'customer_email' => $data['customer_email'],
+            'orderId' => $order->getId(),
+        ];
+
+        try {
+            $response = $this->httpClient->request('POST', 'http://127.0.0.1:8000/billing', [
+                'json' => $secondApiData
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \Exception('Failed to send data to the second API');
+            }
+
+            $secondApiResponse = $response->toArray();
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'message' => 'Order created but failed to notify the second API.',
+                'order_id' => $order->getId(),
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
         return $this->json([
-            'message' => 'La commande ' . $order->getId() . ' a bien été supprimée.',
+            'message' => 'La commande ' . $order->getId() . ' a bien été ajoutée.',
             'order_id' => $order->getId(),
+            'second_api_response' => $secondApiResponse,
         ]);
     }
 
-    #[Route('/content/{id}', name: 'get_order', methods: ['GET'])]
-    public function getOrder(int $id): JsonResponse
+    #[Route('/content/{id?}', name: 'get_order', methods: ['GET'])]
+    public function getOrder(?int $id): JsonResponse
     {
-        $order = $this->entityManager->getRepository(Commande::class)->find($id);
+        if ($id) {
+            $order = $this->entityManager->getRepository(Commande::class)->find($id);
 
-        if (!$order) {
-            return $this->json(['message' => 'La commande numéro ' . $id . ' n\'a pas été trouvée. Merci de bien vouloir réessayer.'], 404);
+            if (!$order) {
+                return $this->json(['message' => 'La commande numéro ' . $id . ' n\'a pas été trouvée. Merci de bien vouloir réessayer.'], 404);
+            }
+
+            $orderData = [
+                'id' => $order->getId(),
+                'product_id' => $order->getProductId(),
+                'customer_email' => $order->getCustomerEmail(),
+                'quantity' => $order->getQuantity(),
+                'total_price' => $order->getTotalPrice(),
+            ];
+
+            return $this->json($orderData);
+        } else {
+            $orders = $this->entityManager->getRepository(Commande::class)->findAll();
+
+            $ordersData = [];
+            foreach ($orders as $order) {
+                $ordersData[] = [
+                    'id' => $order->getId(),
+                    'product_id' => $order->getProductId(),
+                    'customer_email' => $order->getCustomerEmail(),
+                    'quantity' => $order->getQuantity(),
+                    'total_price' => $order->getTotalPrice(),
+                ];
+            }
+
+            return $this->json($ordersData);
         }
-
-        $orderData = [
-            'id' => $order->getId(),
-            'product_id' => $order->getProductId(),
-            'customer_email' => $order->getCustomerEmail(),
-            'quantity' => $order->getQuantity(),
-            'total_price' => $order->getTotalPrice(),
-        ];
-
-        return $this->json($orderData);
     }
 
     #[Route('/content/{id}', name: 'update_order', methods: ['PUT'])]
@@ -79,6 +123,10 @@ class ContentController extends AbstractController
             return $this->json(['message' => 'Invalid data'], 400);
         }
     
+        $order->setProductId($data['product_id']);
+        $order->setCustomerEmail($data['customer_email']);
+        $order->setQuantity($data['quantity']);
+        $order->setTotalPrice($data['total_price']);
         $this->entityManager->flush();
     
         return $this->json(['message' => 'La commande ' .$id . ' a bien été mise à jour.']);
@@ -96,8 +144,23 @@ class ContentController extends AbstractController
         $this->entityManager->remove($order);
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'La commande ' .$id . ' a bien été supprimée.']);
+        try {
+            $response = $this->httpClient->request('DELETE', 'http://127.0.0.1:8000/billing/' . $id);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \Exception('Failed to send delete request to the second API');
+            }
+
+            $secondApiResponse = $response->toArray();
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'message' => 'Order deleted but failed to notify the second API.',
+                'order_id' => $id,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        return $this->json(['message' => 'La commande ' . $id . ' a bien été supprimée.', 'second_api_response' => $secondApiResponse]);
     }
-
-
 }
