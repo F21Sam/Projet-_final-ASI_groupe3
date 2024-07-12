@@ -1,5 +1,7 @@
 <?php
 
+//Controller de l'email, permet de récupérer le JSON fourni depuis une requête HTTP Post pour envoyer les informations à l'utilisateur.
+
 namespace App\Controller;
 
 use App\Entity\Notification;
@@ -20,7 +22,7 @@ class EmailController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['sujet'], $data['recipient'], $data['message'])) {
-            return new JsonResponse(['error' => 'Invalid data'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'Toutes les données attendues n\'ont pas été fournies.'], Response::HTTP_BAD_REQUEST);
         }
 
         $notification = new Notification();
