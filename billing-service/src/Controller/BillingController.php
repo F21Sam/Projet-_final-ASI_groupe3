@@ -71,33 +71,56 @@ class BillingController extends AbstractController
     }
 
     #[Route('/billing/{orderId}', name: 'get_billing', methods: ['GET'])]
-    public function getBilling(string $orderId): JsonResponse
+    public function getBilling(?string $orderId = null): JsonResponse
     {
-        $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $orderId]);
+        if ($orderId !== null) {
+            // Recherche d'une facture par orderId
+            $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $orderId]);
 
-        if (!$billing) {
-            return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réessayer avec un autre indice.'], 404);
+            if (!$billing) {
+                return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réessayer avec un autre indice.'], 404);
+            }
+
+            $billingData = [
+                'id' => $billing->getId(),
+                'amount' => $billing->getAmount(),
+                'due_date' => $billing->getDueDate()->format('Y-m-d'),
+                'customer_email' => $billing->getCustomerEmail(),
+                'orderId' => $billing->getOrderId(),
+            ];
+
+            return $this->json($billingData);
+        } else {
+            // Retourner toutes les factures
+            $billings = $this->entityManager->getRepository(Billing::class)->findAll();
+
+            $billingList = [];
+            foreach ($billings as $billing) {
+                $billingData = [
+                    'id' => $billing->getId(),
+                    'amount' => $billing->getAmount(),
+                    'due_date' => $billing->getDueDate()->format('Y-m-d'),
+                    'customer_email' => $billing->getCustomerEmail(),
+                    'orderId' => $billing->getOrderId(),
+                ];
+                $billingList[] = $billingData;
+            }
+
+            return $this->json($billingList);
         }
-
-        $billingData = [
-            'id' => $billing->getId(),
-            'amount' => $billing->getAmount(),
-            'due_date' => $billing->getDueDate()->format('Y-m-d'),
-            'customer_email' => $billing->getCustomerEmail(),
-            'orderId' => $billing->getOrderId(),
-        ];
-
-        return $this->json($billingData);
     }
+
+
 
 
     #[Route('/billing/{id}', name: 'update_billing', methods: ['PUT'])]
     public function updateBilling(int $id, Request $request): JsonResponse
     {
-        $billing = $this->entityManager->getRepository(Billing::class)->find(['orderId' =>id]);
+        // Recherche de la facture par orderId
+        $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $id]);
 
         if (!$billing) {
-            return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réesayer avec un autre indice.'], 404);
+            return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réessayer avec un autre indice.'], 404);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -110,14 +133,12 @@ class BillingController extends AbstractController
         if (isset($data['customer_email'])) {
             $billing->setCustomerEmail($data['customer_email']);
         }
-        if (isset($data['orderId'])) {
-            $billing->setOrderId($data['orderId']);
-        }
 
         $this->entityManager->flush();
 
         return $this->json(['message' => 'La facture a été mise à jour avec succès.']);
     }
+
 
     #[Route('/billing/{orderId}', name: 'delete_billing', methods: ['DELETE'])]
     public function deleteBillingByOrderId(int $orderId, HttpClientInterface $httpClient): JsonResponse

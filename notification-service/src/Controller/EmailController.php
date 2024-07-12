@@ -1,7 +1,5 @@
 <?php
 
-//Controller de l'email, permet de récupérer le JSON fourni depuis une requête HTTP Post pour envoyer les informations à l'utilisateur.
-
 namespace App\Controller;
 
 use App\Entity\Notification;
@@ -40,7 +38,7 @@ class EmailController extends AbstractController
             $mail->Host = 'smtp.gmail.com'; 
             $mail->SMTPAuth = true;
             $mail->Username = 'landtales.website@gmail.com'; 
-            $mail->Password = 'secret'; 
+            $mail->Password = 'ohif qsqv ccbb usdd'; 
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
@@ -58,5 +56,41 @@ class EmailController extends AbstractController
         }
 
         return new JsonResponse(['success' => 'L\'email a bien été envoyé à l\'utilisateur '], Response::HTTP_OK);
+    }
+
+    #[Route('/notification/{id?}', name: 'get_notification', methods: ['GET'])]
+    public function getNotificationById(EntityManagerInterface $entityManager, $id = null): JsonResponse
+    {
+        $repository = $entityManager->getRepository(Notification::class);
+
+        if ($id !== null) {
+            $notification = $repository->find($id);
+
+            if (!$notification) {
+                return new JsonResponse(['error' => 'Notification not found'], Response::HTTP_NOT_FOUND);
+            }
+
+            return new JsonResponse([
+                'id' => $notification->getId(),
+                'sujet' => $notification->getSujet(),
+                'recipient' => $notification->getEmailRecipient(),
+                'message' => $notification->getMessage(),
+            ]);
+        } else {
+            // Retrieve all notifications
+            $notifications = $repository->findAll();
+
+            $formattedNotifications = [];
+            foreach ($notifications as $notification) {
+                $formattedNotifications[] = [
+                    'id' => $notification->getId(),
+                    'sujet' => $notification->getSujet(),
+                    'recipient' => $notification->getEmailRecipient(),
+                    'message' => $notification->getMessage(),
+                ];
+            }
+
+            return new JsonResponse($formattedNotifications);
+        }
     }
 }
