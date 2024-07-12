@@ -46,19 +46,19 @@ class ContentController extends AbstractController
         ];
 
         try {
-            $response = $this->httpClient->request('POST', 'http://127.0.0.1:8000/billing', [
+            $response = $this->httpClient->request('POST', 'http://127.0.0.1:8001/billing', [
                 'json' => $secondApiData
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new \Exception('Failed to send data to the second API');
+                throw new \Exception('Une erreur est survenue dans l\'appel de l\'API de facture.');
             }
 
             $secondApiResponse = $response->toArray();
 
         } catch (\Exception $e) {
             return $this->json([
-                'message' => 'Order created but failed to notify the second API.',
+                'message' => 'La commande a bien été créée mais il n\'a pas été possible de contacter la seconde api.',
                 'order_id' => $order->getId(),
                 'error' => $e->getMessage()
             ], 500);
@@ -145,17 +145,17 @@ class ContentController extends AbstractController
         $this->entityManager->flush();
 
         try {
-            $response = $this->httpClient->request('DELETE', 'http://127.0.0.1:8000/billing/' . $id);
+            $response = $this->httpClient->request('DELETE', 'http://127.0.0.1:8001/billing/' . $id);
 
             if ($response->getStatusCode() !== 200) {
-                throw new \Exception('Failed to send delete request to the second API');
+                throw new \Exception('Une erreur est survenue dans l\'appel de l\'API de facture.');
             }
 
             $secondApiResponse = $response->toArray();
 
         } catch (\Exception $e) {
             return $this->json([
-                'message' => 'Order deleted but failed to notify the second API.',
+                'message' => 'La commande a bien été supprimée mais il n\'a pas été possible de contacter la seconde API.',
                 'order_id' => $id,
                 'error' => $e->getMessage()
             ], 500);

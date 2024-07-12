@@ -27,7 +27,7 @@ class BillingController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['amount'], $data['due_date'], $data['customer_email'], $data['orderId'])) {
-            return $this->json(['message' => 'Invalid data'], 400);
+            return $this->json(['message' => 'Les données fournies ne sont pas correctes, merci de réessayer.'], 400);
         }
 
         $billing = new Billing();
@@ -45,38 +45,38 @@ class BillingController extends AbstractController
         ];
 
         try {
-            $response = $this->httpClient->request('POST', 'http://127.0.0.1:8001/send-email', [
+            $response = $this->httpClient->request('POST', 'http://127.0.0.1:8002/send-email', [
                 'json' => $notificationData
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new \Exception('Failed to send notification');
+                throw new \Exception('Une erreur est survenue dans la demande d\'envoi d\'un email.');
             }
 
             $notificationResponse = $response->toArray();
 
         } catch (\Exception $e) {
             return $this->json([
-                'message' => 'Billing created but failed to send notification.',
+                'message' => 'La facture a bien été créer mais il n\'a pas été possible d\'envoyer un email.',
                 'billing_id' => $billing->getId(),
                 'error' => $e->getMessage()
             ], 500);
         }
 
         return $this->json([
-            'message' => 'Billing created successfully',
+            'message' => 'La facture a bien été créée.',
             'billing_id' => $billing->getId(),
             'notification_response' => $notificationResponse,
         ]);
     }
 
-    #[Route('/billing/{id}', name: 'get_billing', methods: ['GET'])]
-    public function getBilling(int $id): JsonResponse
+    #[Route('/billing/{orderId}', name: 'get_billing', methods: ['GET'])]
+    public function getBilling(string $orderId): JsonResponse
     {
-        $billing = $this->entityManager->getRepository(Billing::class)->find($id);
+        $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $orderId]);
 
         if (!$billing) {
-            return $this->json(['message' => 'Billing not found'], 404);
+            return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réessayer avec un autre indice.'], 404);
         }
 
         $billingData = [
@@ -90,13 +90,14 @@ class BillingController extends AbstractController
         return $this->json($billingData);
     }
 
+
     #[Route('/billing/{id}', name: 'update_billing', methods: ['PUT'])]
     public function updateBilling(int $id, Request $request): JsonResponse
     {
-        $billing = $this->entityManager->getRepository(Billing::class)->find($id);
+        $billing = $this->entityManager->getRepository(Billing::class)->find(['orderId' =>id]);
 
         if (!$billing) {
-            return $this->json(['message' => 'Billing not found'], 404);
+            return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réesayer avec un autre indice.'], 404);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -115,7 +116,7 @@ class BillingController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Billing updated successfully']);
+        return $this->json(['message' => 'La facture a été mise à jour avec succès.']);
     }
 
     #[Route('/billing/{orderId}', name: 'delete_billing', methods: ['DELETE'])]
@@ -124,7 +125,7 @@ class BillingController extends AbstractController
         $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $orderId]);
 
         if (!$billing) {
-            return $this->json(['message' => 'Billing not found for the given orderId'], 404);
+            return $this->json(['message' => 'La facture n\'a pas été trouvée. Merci de réesayer avec un autre indice.'], 404);
         }
 
         $customerEmail = $billing->getCustomerEmail();
@@ -140,24 +141,24 @@ class BillingController extends AbstractController
                 'message' => "Votre commande avec l'ID $orderId a été supprimée avec succès."
             ];
 
-            $response = $httpClient->request('POST', 'http://127.0.0.1:8001/send-email', [
+            $response = $httpClient->request('POST', 'http://127.0.0.1:8002/send-email', [
                 'json' => $notificationData
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new \Exception('Failed to send notification email');
+                throw new \Exception('Une erreur est survenue dans la demande d\'envoi d\'un email. ');
             }
 
             $notificationResponse = $response->toArray();
 
         } catch (\Exception $e) {
             return $this->json([
-                'message' => 'Billing deleted but failed to send notification email.',
+                'message' => 'La facture a bien été supprimée mais il n\'a pas été possible d\'envoyer un email.',
                 'error' => $e->getMessage()
             ], 500);
         }
 
-        return $this->json(['message' => 'Billing deleted successfully', 'notification_response' => $notificationResponse ?? null]);
+        return $this->json(['message' => 'La facture a été supprimée avec succès.', 'notification_response' => $notificationResponse ?? null]);
     }
 
 }
