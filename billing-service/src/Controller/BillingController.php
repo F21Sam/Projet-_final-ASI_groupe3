@@ -21,6 +21,7 @@ class BillingController extends AbstractController
         $this->httpClient = $httpClient;
     }
 
+    // API Post de création d'une facture à partir des éléments de la commande précédentes.
     #[Route('/billing', name: 'create_billing', methods: ['POST'])]
     public function createBilling(Request $request): JsonResponse
     {
@@ -44,6 +45,8 @@ class BillingController extends AbstractController
             'message' => 'Détails de la commande'
         ];
 
+
+        //Si l'insertion s'est bien effectué, alors nous envoyons un email à l'adresse mail de la facture via l'API Post send-email.
         try {
             $response = $this->httpClient->request('POST', 'http://127.0.0.1:8002/send-email', [
                 'json' => $notificationData
@@ -70,11 +73,14 @@ class BillingController extends AbstractController
         ]);
     }
 
+
+    // Api GET pour afficher une ou plusieurs facture(s).
     #[Route('/billing/{orderId}', name: 'get_billing', methods: ['GET'])]
     public function getBilling(?string $orderId = null): JsonResponse
     {
+
+        // Si nous ne recevons aucun id, alors nous retournons toutes les lignes. 
         if ($orderId !== null) {
-            // Recherche d'une facture par orderId
             $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $orderId]);
 
             if (!$billing) {
@@ -91,7 +97,7 @@ class BillingController extends AbstractController
 
             return $this->json($billingData);
         } else {
-            // Retourner toutes les factures
+
             $billings = $this->entityManager->getRepository(Billing::class)->findAll();
 
             $billingList = [];
@@ -112,11 +118,11 @@ class BillingController extends AbstractController
 
 
 
-
+    // Api PUT pour modifier les infos d'une facture
     #[Route('/billing/{id}', name: 'update_billing', methods: ['PUT'])]
     public function updateBilling(int $id, Request $request): JsonResponse
     {
-        // Recherche de la facture par orderId
+        //Récupération des données JSON et de l'id s'il existe, auquel cas une erreur est retournée.
         $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $id]);
 
         if (!$billing) {
@@ -136,13 +142,18 @@ class BillingController extends AbstractController
 
         $this->entityManager->flush();
 
+
+        //Retour de la bonne exécution de la requête (code HTTP 200 OK).
         return $this->json(['message' => 'La facture a été mise à jour avec succès.']);
     }
 
 
+    //API DELETE pour supprimer une facture de la base de données
     #[Route('/billing/{orderId}', name: 'delete_billing', methods: ['DELETE'])]
     public function deleteBillingByOrderId(int $orderId, HttpClientInterface $httpClient): JsonResponse
     {
+
+        //Vérification de son existence
         $billing = $this->entityManager->getRepository(Billing::class)->findOneBy(['orderId' => $orderId]);
 
         if (!$billing) {
@@ -155,6 +166,7 @@ class BillingController extends AbstractController
         $this->entityManager->remove($billing);
         $this->entityManager->flush();
 
+        //Si la facture a bien été supprimé, alors on envoi un email à la personne pour la prévenir en appelant l'API Post send-email
         try {
             $notificationData = [
                 'sujet' => 'Notification de suppression de commande',
@@ -179,6 +191,7 @@ class BillingController extends AbstractController
             ], 500);
         }
 
+        //Retour d'une message de succès.
         return $this->json(['message' => 'La facture a été supprimée avec succès.', 'notification_response' => $notificationResponse ?? null]);
     }
 

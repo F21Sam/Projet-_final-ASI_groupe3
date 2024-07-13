@@ -21,6 +21,8 @@ class ContentController extends AbstractController
         $this->httpClient = $httpClient;
     }
 
+
+    //APi POST pour créer une commande
     #[Route('/content', name: 'create_order', methods: ['POST'])]
     public function createOrder(Request $request): JsonResponse
     {
@@ -71,9 +73,12 @@ class ContentController extends AbstractController
         ]);
     }
 
+    //API Get pour récupérer les informations d'une commande
     #[Route('/content/{id?}', name: 'get_order', methods: ['GET'])]
     public function getOrder(?int $id): JsonResponse
     {
+
+        // Si aucun id n'est fournie, alors nous retournons toutes les lignes de bdd.
         if ($id) {
             $order = $this->entityManager->getRepository(Commande::class)->find($id);
 
@@ -108,6 +113,7 @@ class ContentController extends AbstractController
         }
     }
 
+    // Api PUT pour modifier les informations d'une commande.
     #[Route('/content/{id}', name: 'update_order', methods: ['PUT'])]
     public function updateOrder(int $id, Request $request): JsonResponse
     {
@@ -132,9 +138,13 @@ class ContentController extends AbstractController
         return $this->json(['message' => 'La commande ' .$id . ' a bien été mise à jour.']);
     }
     
+
+    //API DELETE pour suppression d'une commande dans la base de données
     #[Route('/content/{id}', name: 'delete_order', methods: ['DELETE'])]
     public function deleteOrder(int $id): JsonResponse
     {
+
+        //Vérification de l'existence de l'id en base de données.
         $order = $this->entityManager->getRepository(Commande::class)->find($id);
 
         if (!$order) {
@@ -144,6 +154,8 @@ class ContentController extends AbstractController
         $this->entityManager->remove($order);
         $this->entityManager->flush();
 
+
+        //Si la suppression s'est faite avec succès, alors nous envoyons un demande de suppression de la facture à l'API DELETE billing.
         try {
             $response = $this->httpClient->request('DELETE', 'http://127.0.0.1:8001/billing/' . $id);
 
