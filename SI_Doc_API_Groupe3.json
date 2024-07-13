@@ -1,0 +1,332 @@
+{
+	"info": {
+		"_postman_id": "d83d81ed-d609-4f82-b2eb-73c1a89634f5",
+		"name": "API Symfony SI",
+		"description": "# Pour commencer l'utilisation des API\n\nCette collection contient l'ensemble des API du projet finale développée par :\n\n- THIBAUT Rémy\n    \n- SAMASSA Fanta Mamou\n    \n- DELNEUF QUENTIN\n    \n\n## De quoi est composer la collection\n\nLa collection est divisée en 3 parties pour chaque micro-services :\n\n- Order Service : permet de créer une commande\n    \n- Billing Service : permet de faire une facture de la commande\n    \n- Notification Service : permet d'envoyer un mail à la personne qui a commandée.\n    \n\n## Les types d'API\n\nNos API se divisent en 4 catégories :\n\n- APIs Post : permettent d'ajouter des données en Base de données et d'envoyer des mails.\n    \n- APIs GET : permettent de récupérer des informations de la Base de données, il est possible de récupérer une ligne de la table précisemment où bien toutes les données sont renvoyés si aucune précision n'est donnée.\n    \n- APIs PUT : permettent de mettre à jour des informations de la Base de données.\n    \n- APIs DELETE : permettent de supprimer des lignes de la Base de données.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36363653"
+	},
+	"item": [
+		{
+			"name": "Order Service",
+			"item": [
+				{
+					"name": "Add Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\": 1,\r\n    \"customer_email\": \"john.doe@gmail.com\",\r\n    \"quantity\": 2,\r\n    \"total_price\": 100.50\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/content",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"content"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/content/{{idOrder}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"content",
+								"{{idOrder}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"product_id\": 6,\r\n    \"customer_email\": \"test@example.com\",\r\n    \"quantity\": 2565,\r\n    \"total_price\": 100.50\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/content/{{idOrder}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"content",
+								"{{idOrder}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Order",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/content/{{idOrder}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"content",
+								"{{idOrder}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Billing Service",
+			"item": [
+				{
+					"name": "Add Billing",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"amount\": 100.50,\r\n    \"due_date\": \"2024-08-01\",\r\n    \"customer_email\": \"customer@example.com\",\r\n    \"orderId\": 123\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8001/billing",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8001",
+							"path": [
+								"billing"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Billing",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8001/billing/{{idOrder}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8001",
+							"path": [
+								"billing",
+								"{{idOrder}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Billing",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"amount\": 10.50,\r\n    \"due_date\": \"2024-08-01\",\r\n    \"customer_email\": \"cuuidjsknsdqsdmple.com\",\r\n    \"orderId\": 123\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8001/billing/{{idOrder}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8001",
+							"path": [
+								"billing",
+								"{{idOrder}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Billing",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8001/billing/{{idOrder}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8001",
+							"path": [
+								"billing",
+								"{{idOrder}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Notification Service",
+			"item": [
+				{
+					"name": "Send email",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"sujet\": \"Nouvelle notification\",\r\n    \"recipient\": \"john.doe@gmail.com\",\r\n    \"message\": \"Détails de la commande\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8002/send-email",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8002",
+							"path": [
+								"send-email"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8002/notification/{{idNotification}}",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8002",
+							"path": [
+								"notification",
+								"{{idNotification}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "idOrder",
+			"value": "{{idOrder}}",
+			"type": "string"
+		},
+		{
+			"key": "idNotification",
+			"value": "{{idNotification}}",
+			"type": "string"
+		}
+	]
+}
