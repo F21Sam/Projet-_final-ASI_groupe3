@@ -46,7 +46,7 @@ class EmailController extends AbstractController
             $mail->Host = 'smtp.gmail.com'; 
             $mail->SMTPAuth = true;
             $mail->Username = 'landtales.website@gmail.com'; 
-            $mail->Password = 'ohif qsqv ccbb usdd'; 
+            $mail->Password = 'secret'; 
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
