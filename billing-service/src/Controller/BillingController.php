@@ -39,10 +39,16 @@ class BillingController extends AbstractController
         $this->entityManager->persist($billing);
         $this->entityManager->flush();
 
+
+        $currentDate = new \DateTime();
+        $formattedDate = $currentDate->format('d-m-Y H:i:s');
+
         $notificationData = [
             'sujet' => 'Nouvelle notification',
             'recipient' => $data['customer_email'],
-            'message' => 'Détails de la commande'
+            'message' => "Détails de la commande numéro " . $billing->getOrderId() . " :<br>" .
+                        "Montant - " . number_format($billing->getAmount(), 2, ',', ' ') . " €<br>" .
+                        "Date d'achat - " . $formattedDate,
         ];
 
 
